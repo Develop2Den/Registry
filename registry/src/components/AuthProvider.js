@@ -1,29 +1,51 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-const AuthProvider = createContext();
+const AuthContext = createContext();
 
-export const  AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Проверьте наличие куков или выполните API-запрос для проверки статуса аутентификации
+    // Проверяем наличие куков или выполняем API-запрос для проверки статуса аутентификации
     const checkAuth = async () => {
-      const response = await fetch('/api/user', {
-        credentials: 'include' // для передачи куков
-      });
-      if (response.ok) {
-        setIsAuthenticated(true);
+      try {
+        const response = await axios.get('/user', {
+          withCredentials: true // для передачи куков
+        });
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+        console.error('Ошибка аутентификации:', error);
       }
     };
 
     checkAuth();
   }, []);
 
+  const logout = async () => {
+    try {
+      const response = await axios.post('/logout', {}, {
+        withCredentials: true,
+        maxRedirects: 0
+      });
+      if (response.status === 200) {
+        console.log('Logout response:', response);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error('Ошибка при выходе из системы:', error);
+    }
+  };
+
   return (
-    <AuthProvider.Provider value={{ isAuthenticated }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, logout }}>
       {children}
-    </AuthProvider.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthProvider);
+export const useAuth = () => useContext(AuthContext);

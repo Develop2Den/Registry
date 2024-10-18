@@ -1,5 +1,5 @@
 {
-  "name": "untitled",
+  "name": "registry",
   "version": "0.1.0",
   "proxy": "http://localhost:9000",
   "private": true,
